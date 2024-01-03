@@ -1,11 +1,11 @@
 class Car{
-    constructor(x,y,width,height,CType,MaxSpeed=1){
+    constructor(x,y,width,height,CType,MaxSpeed=4){
         this.x = x;
         this.y = y
         this.width = width;
         this.height = height;
         this.speed = 0;
-        this.acceleration = 0.05;
+        this.acceleration = 0.1;
         this.MaxSpeed=MaxSpeed;
         this.friction = 0.01;
         this.angle=0
@@ -17,7 +17,7 @@ class Car{
             
         this.sensor = new Sensor(this)
         
-        this.brain = new NeuralNetwork([this.sensor.rayCount,6,4])
+        this.brain = new NeuralNetwork([this.sensor.rayCount,16,4])
     
     }
         //this.sensor = new Sensor(this)
@@ -120,20 +120,20 @@ class Car{
         this.y-= Math.cos(this.angle)*this.speed
     }
 
- draw(ctx,color,CType){ 
+ draw(ctx,color,drawSensor=false){ 
 
     if(this.damaged){
         ctx.fillStyle="gray"
     }else{
         ctx.fillStyle=color
     }
-    ctx.save()
+    ctx.beginPath()
     ctx.moveTo(this.polygon[0].x,this.polygon[0].y)
     for(let i=1;i<this.polygon.length;i++){
         ctx.lineTo(this.polygon[i].x,this.polygon[i].y)
     }
     ctx.fill();
-    if(this.sensor){this.sensor.draw(ctx)}
+    if(this.sensor && drawSensor){this.sensor.draw(ctx)}
     
 }
 }
