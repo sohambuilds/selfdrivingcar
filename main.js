@@ -10,42 +10,78 @@ const carCtx = carCanvas.getContext("2d")
 const networkCtx = networkCanvas.getContext("2d")
 const road = new Road(carCanvas.width/2,carCanvas.width*0.9)
 const car = new Car(road.getLaneCenter(1),100,30,50, "AI")
-const traffic = [ new Car(road.getLaneCenter(1),0,30,50,"DUMMY",0.5)]
+const traffic = [ new Car(road.getLaneCenter(1),-400,30,50,"DUMMY",0.5),
+new Car(road.getLaneCenter(2),-600,30,50,"DUMMY",0.5),
+new Car(road.getLaneCenter(0),-800,30,50,"DUMMY",0.5),
+new Car(road.getLaneCenter(2),-800,30,50,"DUMMY",0.5)
 
+]
+const N=2000
+const cars = generateCars(N)
+let bestCar=cars[0]
+
+
+
+if(localStorage.getItem("bestBrain")){
+    bestCar.brain=JSON.parse(
+        localStorage.getItem("bestBrain")
+    )
+}
 animate();
 
-//function generateCars(N){
-  //  const cars = [];
-    //for(let i = 0;i<=N;i++){
-      //  cars.push(new Car(road.getLaneCenter(1),-100,30,50,"AI"))
-   // }
+function save(){
+    localStorage.setItem("bestBrain",
+        JSON.stringify(bestCar.brain));
+}
 
-//    return cars
-//}
+function discard(){
+    localStorage.removeItem("bestBrain");
+}
+
+
+
+
+function generateCars(N){
+    const cars = [];
+    for(let i = 0;i<=N;i++){
+       cars.push(new Car(road.getLaneCenter(1),-100,30,50,"AI"))
+    }
+
+   return cars
+}
 
 function animate(time){
     for(i=0;i<traffic.length;i++){
         traffic[i].update(road.borders,[])
     }
 
-    //for(let i=0;i<=cars.length;)
-    car.update(road.borders,traffic);
+    for(let i=0;i<cars.length;i++){
+    cars[i].update(road.borders,traffic);
+    }
 
+    bestCar=cars.find(
+        c=>c.y==Math.min(...cars.map(c=>c.y))
+    )
     carCanvas.height=window.innerHeight
     networkCanvas.height=window.innerHeight
 
     carCtx.save();
-    carCtx.translate(0,-car.y+carCanvas.height*0.5);
+    carCtx.translate(0,-bestCar.y+carCanvas.height*0.5);
   
 
     road.draw(carCtx)
     for(let i=0;i<traffic.length;i++){
         traffic[i].draw(carCtx,'green');
     }
-    car.draw(carCtx,'yellow')
+    carCtx.globalAlpha=0.1;
+    for(let i=0;i<cars.length;i++){
+    cars[i].draw(carCtx,'yellow')
+}
+    carCtx.globalAlpha=1
+    bestCar.draw(carCtx,"cyan",true)
     
     carCtx.restore();
     networkCtx.lineDashOffset=-time/50
-    Visualizer.drawNetwork(networkCtx,car.brain)
+    Visualizer.drawNetwork(networkCtx,bestCar.brain)
     requestAnimationFrame(animate)
 }
